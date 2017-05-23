@@ -1,0 +1,50 @@
+<project name="AIM Deployment Release 1" default="test" basedir="." xmlns:sf="antlib:com.salesforce">
+
+	<property file="user.properties"/>
+	<property file="build.properties"/>
+	<property environment="env"/>
+	<property name="dir.package" value="${basedir}"/>
+	<property name="password" value=""/>
+
+	<target name="deploy">
+		<input message="username:" addproperty="usr"/>
+		<input message="password:" addproperty="pwd"/>
+		<input message="checkOnly:" addproperty="chck"/>
+		<sf:deploy 
+				username="${usr}" 
+				password="${pwd}" 
+				serverurl="${sf.serverUrl}" 
+				deployRoot="/src"
+				ignoreWarnings="true"
+				checkOnly="${chck}"
+				maxPoll="100"
+				runAllTests="true"/>
+	</target>
+
+	<target name="test">
+		<input message="username:" addproperty="usr"/>
+		<input message="password:" addproperty="pwd"/>
+		<input message="checkOnly:" addproperty="chck"/>
+		<sf:deploy 
+				username="${usr}" 
+				password="${pwd}" 
+				serverurl="${sf.serverUrl}" 
+				deployRoot="/src"
+				ignoreWarnings="true"
+				checkOnly="${chck}"
+				maxPoll="100"
+				testLevel="RunLocalTests">
+		</sf:deploy>
+	</target>
+
+	<target name="retrieve">
+		<input message="username:" addproperty="usr"/>
+		<input message="password:" addproperty="pwd"/>
+		<sf:retrieve
+			username="${usr}" 
+			password="${pwd}" 
+			serverurl="${sf.serverUrl}"
+			retrieveTarget="src"
+			unpackaged="src/package.xml"/>
+	</target>
+</project>

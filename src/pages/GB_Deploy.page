@@ -1,0 +1,145 @@
+<apex:page controller="GB_Deploy">
+    <style>
+        pre { font-family: 'Consolas'};
+        table {}
+        table td,th {padding: 3px;}
+    </style>
+    
+    <table id="settingsTable"></table>
+    <table id="metaTable"></table>
+    
+    <script>
+        
+        let settingsArray = [];
+        <apex:repeat value="{!GB_Settings}" var="setting">
+            settingsArray.push({
+                "sfid": "{!setting.Id}",
+                "gridName": "{!setting.GBLite__Grid_Name__c}",
+                "isDefault": "{!setting.GBLite__Default_Definition__c}",
+                "LastModifiedDate": "{!setting.LastModifiedDate}",
+                "LastModifiedBy": "{!setting.LastModifiedBy.Name}",
+                "definition": {!setting.GBLite__Definition__c}
+            });
+        </apex:repeat>
+        
+        let settingsTable = document.getElementById('settingsTable');
+        settingsTable.innerHTML = '<tr><th>Grid Name</th><th>Last Modified Date</th><th>Last Modified By</th></tr>';
+        settingsArray.forEach(item => {
+            let tr = document.createElement('tr');
+            
+            if (item.definition.adminFieldProperties && item.definition.adminFieldProperties !== '')
+                item.definition.adminFieldProperties = JSON.parse(item.definition.adminFieldProperties.replace(/\\\"/g, "\""));
+            if (item.definition.charts && item.definition.charts !== '')
+                item.definition.charts = JSON.parse(item.definition.charts.replace(/\\\"/g, "\""));
+            if (item.definition.colorCoding && item.definition.colorCoding !== '')
+                item.definition.colorCoding = JSON.parse(item.definition.colorCoding.replace(/\\\"/g, "\""));
+            if (item.definition.crudSettings && item.definition.crudSettings !== '')
+                item.definition.crudSettings = JSON.parse(item.definition.crudSettings.replace(/\\\"/g, "\""));
+            if (item.definition.fieldProperties && item.definition.fieldProperties !== '')
+                item.definition.fieldProperties = JSON.parse(item.definition.fieldProperties.replace(/\\\"/g, "\""));
+            if (item.definition.relationships && item.definition.relationships !== '')
+                item.definition.relationships = JSON.parse(item.definition.relationships.replace(/\\\"/g, "\""));
+            
+            let json = JSON.stringify(sortObject(item.definition), null, 2);
+            let link = `<a href="data:text/plain;base64,${window.btoa(json)}" download="${item.gridName}">${item.gridName}</a>`;
+
+            tr.innerHTML = `
+                <td>${link}</td>
+                <td>${item.LastModifiedDate}</td>
+                <td>${item.LastModifiedBy}</td>
+                <td><input type="file" data-sfid="${item.sfid}" onChange="onFileSelectChanged(this)"/></td>
+                `; //<td><pre>${json}</pre></td>
+            
+            settingsTable.append(tr);
+        });
+        
+        
+        let metaArray = [];
+        <apex:repeat value="{!GB_Meta}" var="meta">
+            metaArray.push({
+                "Type": "{!meta.GBLite__Type__c}", 
+                "Object_API_Name": "{!meta.GBLite__Object_API_Name__c}",
+                "Picklist_Meta": {!IF(meta.GBLite__Picklist_Meta__c == '', '\"\"',meta.GBLite__Picklist_Meta__c)},
+                "LastModifiedDate": "{!meta.LastModifiedDate}",
+                "LastModifiedBy": "{!meta.LastModifiedBy.Name}"
+            });
+        </apex:repeat>
+        
+        
+        let metaTable = document.getElementById('metaTable');
+        metaTable.innerHTML = '<tr><th>Action Name</th><th>Last Modified Date</th><th>Last Modified By</th><th>Description</th></tr>';
+        metaArray.forEach(item => {
+            let tr = document.createElement('tr'),
+                json = JSON.stringify(item.Picklist_Meta, Object.keys(item.Picklist_Meta).sort(), 2),
+                name = `${item.Object_API_Name}.${json.actionLabel}`,
+                link = `<a href="data:text/plain;base64,${window.btoa(json)}" download="${name}">${name}</a>`;
+            
+            tr.innerHTML = `
+                <td>${link}</td>
+                <td>${item.LastModifiedDate}</td>
+                <td>${item.LastModifiedBy}</td>
+                <td>${item.Picklist_Meta.descr}</td>`;
+           
+            metaTable.append(tr);
+        });
+        
+        
+        function readFile(file, callback) {
+            let fileReader = new FileReader();
+            fileReader.onload = (onLoadRes) => {
+                if (onLoadRes.target.readyState == FileReader.DONE) {
+                    callback({ content : arrayBufferToString(onLoadRes.target.result) });
+                }
+            }
+            fileReader.onprogress = (e) => {}
+            fileReader.readAsArrayBuffer(file);
+        }
+        
+        function onFileSelectChanged(e) {
+            let sfid = e.getAttribute('data-sfid');
+            
+            
+            if (e.files.length > 0) {
+                readFile(e.files[0], res => {
+                    let json = JSON.parse(res.content);
+                    json.adminFieldProperties = JSON.stringify(json.adminFieldProperties, null, 0).replace(/\"/g,"\"");
+                    json.charts = JSON.stringify(json.charts, null, 0).replace(/\"/g,"\"");
+                    json.colorCoding = JSON.stringify(json.colorCoding, null, 0).replace(/\"/g,"\"");
+                    json.crudSettings = JSON.stringify(json.crudSettings, null, 0).replace(/\"/g,"\"");
+                    json.fieldProperties = JSON.stringify(json.fieldProperties, null, 0).replace(/\"/g,"\"");
+                    json.relationships = JSON.stringify(json.relationships, null, 0).replace(/\"/g,"\"");
+
+                    console.log('content:', json);
+                    let content = window.btoa(JSON.stringify(json, null, 0));
+                    console.log('content:', content);
+                    console.log('sfid:', sfid);
+                    
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.GB_Deploy.updateSetting}',
+                        sfid,
+                        content, 
+                        (res, evt) => {
+                            console.log(res, evt);
+                        }
+                    );
+                        
+                });
+            }
+        }
+        
+        function arrayBufferToString(arrBuff) {
+            let text = '',
+                bytes = new Uint8Array(arrBuff);
+            for (let ii = 0; ii < bytes.byteLength; ii++) {
+                text += String.fromCharCode(bytes[ii]);
+            }
+            return text;
+        }
+
+        function sortObject(o) {
+            return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
+        }
+    </script>
+    
+    
+</apex:page>
