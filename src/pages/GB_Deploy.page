@@ -1,44 +1,62 @@
 <apex:page controller="GB_Deploy">
     <style>
         pre { font-family: 'Consolas'};
-        table {}
         table td,th {padding: 3px;}
+        .gb_deploy_table td, th {
+            font-family: 'Consolas';
+            vertical-align: middle;
+        }
+        .gb_deploy_table th { text-align: center; }
+        .gb_deploy_table td.date {
+            min-width: 11em;
+        }
+        .gb_deploy_table td a { cursor: pointer; }
+        .gb_deploy_table tr:hover { background-color: #E1F4FF; }
+        .gb_deploy_table ol { padding: 0px; }
     </style>
 
+    <a id="download_link" href="" style="display:none;"></a>
     <apex:form>
-         <table>
+        <table class="gb_deploy_table">
             <tr>
                 <th>Name</th>
-                <th>actions</th>
+                <th>LastModifiedBy</th>
+                <th>LastModifiedDate</th>
+                <th>Actions</th>
                 <th>JS</th>
                 <th>CSS</th>
             </tr>
-            
+
             <apex:repeat value="{!SettingsList}" var="s">
             <tr>
+                <td><a href="" onclick="injectContent(this, '{!s.Id}', 'Setting', '{!s.Name}.json')">{!s.Name}</a></td>
+                <td>{!s.Rec.LastModifiedBy.Name}</td>
+                <td class="date">{!s.LastModifiedDate}</td>
                 <td>
-                    <a href="" onclick="injectContent(this, '{!s.ContentBase64}')" download="{!s.Name}.json">{!s.Name}</a>
-                </td>
-                <td>
+                    <ol>
                     <apex:repeat value="{!s.Actions}" var="mc">
-                    <a href="data:text/plain;base64,{!mc.ContentBase64}" download="{!mc.Name}.json">{!mc.Name}</a>
+                    <li><a href="" onclick="injectContent(this, '{!mc.Id}', 'Meta', '{!mc.Name}.json')">{!mc.Name}</a></li>
                     </apex:repeat>
+                    </ol>
                 </td>
                 <td>
+                    <ol>
                     <apex:repeat value="{!s.CustomJS}" var="mc">
-                    <a href="data:text/plain;base64,{!mc.ContentBase64}" download="{!mc.Name}.js">{!mc.Name}</a>
+                    <li><a href="" onclick="injectContent(this, '{!mc.Id}', 'Meta', '{!mc.Name}.js')">{!mc.Name}</a></li>
                     </apex:repeat>
+                    </ol>
                 </td>
                 <td>
+                    <ol>
                     <apex:repeat value="{!s.CustomCSS}" var="mc">
-                    <a href="data:text/plain;base64,{!mc.ContentBase64}" download="{!mc.Name}.css">{!mc.Name}</a>
+                    <li><a href="" onclick="injectContent(this, '{!mc.Id}', 'Meta', '{!mc.Name}.css')">{!mc.Name}</a></li>
                     </apex:repeat>
+                    </ol>
                 </td>
             </tr>
             </apex:repeat>
         </table>
     </apex:form>
-    
 
     <script>
         function unescapeJSON(str) {
@@ -63,12 +81,56 @@
             if (def.relationships && def.relationships !== '')
                 def.relationships = unescapeJSON(def.relationships);
             
-            return JSON.stringify(def, null, 2);
+            return def;
+        }
+
+        function prettifyBase64EncodedJSON(base64JsonString) {
+            let json = JSON.parse(window.atob(base64JsonString));
+            json = convertFullObject(json);
+            return window.btoa(JSON.stringify(json, null, 2));
         }
         
-        function injectContent(sender, contentBase64) {
-            let jsonCont = JSON.parse(window.atob(contentBase64));
-            sender.href = `data:text/plain;base64,${window.btoa(convertFullObject(jsonCont))}`;
+        //function injectContent(sender, contentBase64) {
+        //    let content = prettifyBase64EncodedJSON(contentBase64);
+
+        //    sender.href = `data:text/plain;base64,${content}`;
+        //    return true;
+        //}
+
+        function injectContent(sender, sfId, sfType, name) {
+            getBase64Content(sfId, sfType, res => {
+                let link = document.getElementById('download_link');
+
+                //console.log(res);
+                let content = res;
+                if (sfType === 'Setting') {
+                    content = prettifyBase64EncodedJSON(content);
+                }
+                
+                link.href = `data:text/plain;base64,${content}`;
+                link.download = name;
+                link.click();
+                console.log('download finished.');
+            });
+
+            console.log('download started.');
+            return false;
+        }
+
+        //function getSiblingLink(el) {
+        //    return el.parentElement.querySelector('a');
+        //}
+
+        function getBase64Content(sfId, sfType, callback) {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.GB_Deploy.getBase64ContentByIdAndType}',
+                sfId,
+                sfType,
+                (res, evt) => {
+                    //console.log('result:', res, evt);
+                    callback(res);
+                }
+            );
         }
     </script>
 </apex:page>

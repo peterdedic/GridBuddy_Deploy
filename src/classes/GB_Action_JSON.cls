@@ -1,0 +1,20 @@
+public class GB_Action_JSON {
+	public String actionLabel {get;set;}
+	public String actionLocation {get;set;}
+	public String actionType {get;set;}
+	public String confirmAction {get;set;}
+	public String confirmMessage {get;set;}
+	public String content {get;set;}
+	public String contentSource {get;set;}
+	public String descr {get;set;}
+	public String displayBehavior {get;set;}
+	public String idParamName {get;set;}
+	public String overlayHeight {get;set;}
+	public String overlayHeightUnit {get;set;}
+	public String overlayLeftOffset {get;set;}
+	public String overlayLeftOffsetUnit {get;set;}
+	public String overlayTopOffset {get;set;}
+	public String overlayTopOffsetUnit {get;set;}
+	public String overlayWidth {get;set;}
+	public String overlayWidthUnit {get;set;}
+}
