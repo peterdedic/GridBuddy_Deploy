@@ -23,8 +23,6 @@
                 <th>LastModifiedBy</th>
                 <th>LastModifiedDate</th>
                 <th>Actions</th>
-                <th>JS</th>
-                <th>CSS</th>
             </tr>
 
             <apex:repeat value="{!SettingsList}" var="s">
@@ -36,20 +34,6 @@
                     <ol>
                     <apex:repeat value="{!s.Actions}" var="mc">
                     <li><a href="" onclick="injectContent(this, '{!mc.Id}', 'Meta', '{!mc.Name}.json')">{!mc.Name}</a></li>
-                    </apex:repeat>
-                    </ol>
-                </td>
-                <td>
-                    <ol>
-                    <apex:repeat value="{!s.CustomJS}" var="mc">
-                    <li><a href="" onclick="injectContent(this, '{!mc.Id}', 'Meta', '{!mc.Name}.js')">{!mc.Name}</a></li>
-                    </apex:repeat>
-                    </ol>
-                </td>
-                <td>
-                    <ol>
-                    <apex:repeat value="{!s.CustomCSS}" var="mc">
-                    <li><a href="" onclick="injectContent(this, '{!mc.Id}', 'Meta', '{!mc.Name}.css')">{!mc.Name}</a></li>
                     </apex:repeat>
                     </ol>
                 </td>

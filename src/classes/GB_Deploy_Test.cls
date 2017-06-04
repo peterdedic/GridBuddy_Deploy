@@ -34,29 +34,29 @@ global class GB_Deploy_Test {
     @isTest 
     static void test_dataPrep() {
         GBLite__GB_Global_Meta__c test_meta_action = new GBLite__GB_Global_Meta__c(
-            GBLite__Summary__c = '',
+            //GBLite__Summary__c = '',
             GBLite__Picklist_Meta__c = '{"actionLabel": "label1"}',
             GBLite__Type__c = 'Action'
         );
         insert test_meta_action;
 
-        GBLite__GB_Global_Meta__c test_meta_css = new GBLite__GB_Global_Meta__c(
-            GBLite__Summary__c = 'gbc_testgrid_css',
-            GBLite__Picklist_Meta__c = 'body {width: 10px;}',
-            GBLite__Type__c = 'Custom Code - CSS'
-        );
-        insert test_meta_css;
+        //GBLite__GB_Global_Meta__c test_meta_css = new GBLite__GB_Global_Meta__c(
+        //    GBLite__Summary__c = 'gbc_testgrid_css',
+        //    GBLite__Picklist_Meta__c = 'body {width: 10px;}',
+        //    GBLite__Type__c = 'Custom Code - CSS'
+        //);
+        //insert test_meta_css;
 
-        GBLite__GB_Global_Meta__c test_meta_js = new GBLite__GB_Global_Meta__c(
-            GBLite__Summary__c = 'gbc_testgrid_js',
-            GBLite__Picklist_Meta__c = 'var test = 1;',
-            GBLite__Type__c = 'Custom Code - JavaScript'
-        );
-        insert test_meta_js;
+        //GBLite__GB_Global_Meta__c test_meta_js = new GBLite__GB_Global_Meta__c(
+        //    GBLite__Summary__c = 'gbc_testgrid_js',
+        //    GBLite__Picklist_Meta__c = 'var test = 1;',
+        //    GBLite__Type__c = 'Custom Code - JavaScript'
+        //);
+        //insert test_meta_js;
 
         GBLite__GridBuddySettings__c test_setting = new GBLite__GridBuddySettings__c(
             GBLite__Grid_Name__c = 'test grid',
-            GBLite__Definition__c = '{"actions": "'+test_meta_action.Id+'", "customCSSIds": "'+test_meta_css.Id+'", "customJSIds": "'+test_meta_js.Id+'"}',
+            GBLite__Definition__c = '{"actions": "'+test_meta_action.Id+'"}',
             GBLite__Default_Definition__c = true
         );
         insert test_setting;

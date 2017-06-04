@@ -37,7 +37,7 @@ global without sharing class GB_Deploy {
                 GBLite__Grid_Name__c,
                 GBLite__Object_API_Name__c, 
                 GBLite__Picklist_Meta__c,
-                GBLite__Summary__c,
+                //GBLite__Summary__c,
                 LastModifiedDate,
                 LastModifiedBy.Name
             FROM    GBLite__GB_Global_Meta__c 
@@ -48,12 +48,12 @@ global without sharing class GB_Deploy {
             if (gbm.GBLite__Type__c == 'Action') {
                m = new MetaAction(gbm);
             }
-            if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
-               m = new MetaCSS(gbm);
-            }
-            if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
-               m = new MetaJS(gbm);
-            }
+            //if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
+            //   m = new MetaCSS(gbm);
+            //}
+            //if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
+            //   m = new MetaJS(gbm);
+            //}
             if (m != null)
                 MetaMap.put(m.Id, m);
         }
@@ -135,8 +135,8 @@ global without sharing class GB_Deploy {
 
     public class Setting extends Meta {
         public List<Meta> Actions {get; private set;}
-        public List<Meta> CustomCSS {get; private set;}
-        public List<Meta> CustomJS {get; private set;}
+        //public List<Meta> CustomCSS {get; private set;}
+        //public List<Meta> CustomJS {get; private set;}
 
         public GBLite__GridBuddySettings__c Rec {get; private set;}
         public String Id {get; private set;}
@@ -155,13 +155,13 @@ global without sharing class GB_Deploy {
             Definition = (GB_Settings_JSON)JSON.deserialize(Rec.GBLite__Definition__c, GB_Settings_JSON.class);
 
             Actions = GB_Deploy.getMetaContent(Definition.actions);
-            CustomCSS = GB_Deploy.getMetaContent(Definition.customCSSIds);
-            CustomJS = GB_Deploy.getMetaContent(Definition.customJSIds);
+            //CustomCSS = GB_Deploy.getMetaContent(Definition.customCSSIds);
+            //CustomJS = GB_Deploy.getMetaContent(Definition.customJSIds);
 
 
             Definition.actions = GB_Deploy.generateMetaExternalId(Actions);
-            Definition.customCSSIds = GB_Deploy.generateMetaExternalId(CustomCSS);
-            Definition.customJSIds = GB_Deploy.generateMetaExternalId(CustomJS);
+            //Definition.customCSSIds = GB_Deploy.generateMetaExternalId(CustomCSS);
+            //Definition.customJSIds = GB_Deploy.generateMetaExternalId(CustomJS);
 
             //System.debug('===' + this);
             //System.debug('===' + this.Definition);
@@ -179,28 +179,28 @@ global without sharing class GB_Deploy {
         public String ContentBase64 {get; private set;}
     }
 
-    public class MetaCSS extends Meta {
-        public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
+    //public class MetaCSS extends Meta {
+    //    public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
 
-        public MetaCSS(GBLite__GB_Global_Meta__c rec) {
-            GBmeta = rec;
-            Id = rec.Id;
-            //Type = 'CSS';
-            ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
-            Name = GBmeta.GBLite__Summary__c;
-        }
-    }
-    public class MetaJS extends Meta {
-        public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
+    //    public MetaCSS(GBLite__GB_Global_Meta__c rec) {
+    //        GBmeta = rec;
+    //        Id = rec.Id;
+    //        //Type = 'CSS';
+    //        ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
+    //        Name = GBmeta.GBLite__Summary__c;
+    //    }
+    //}
+    //public class MetaJS extends Meta {
+    //    public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
 
-        public MetaJS(GBLite__GB_Global_Meta__c rec) {
-            GBmeta = rec;
-            Id = rec.Id;
-            //Type = 'JS';
-            ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
-            Name = GBmeta.GBLite__Summary__c;
-        }
-    }
+    //    public MetaJS(GBLite__GB_Global_Meta__c rec) {
+    //        GBmeta = rec;
+    //        Id = rec.Id;
+    //        //Type = 'JS';
+    //        ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
+    //        Name = GBmeta.GBLite__Summary__c;
+    //    }
+    //}
     public class MetaAction extends Meta {
         public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
         public GB_Action_JSON Definition {get; private set;}
