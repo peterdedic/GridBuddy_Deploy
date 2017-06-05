@@ -69,12 +69,12 @@ global without sharing class GB_Deploy {
             if (gbm.GBLite__Type__c == 'Action') {
                m = new MetaAction(gbm);
             }
-            if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
-               m = new MetaCSS(gbm);
-            }
-            if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
-               m = new MetaJS(gbm);
-            }
+            //if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
+            //   m = new MetaCSS(gbm);
+            //}
+            //if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
+            //   m = new MetaJS(gbm);
+            //}
             if (m != null)
                 MetaMap.put(m.Name, m);
         }
