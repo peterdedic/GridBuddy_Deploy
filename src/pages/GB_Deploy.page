@@ -13,6 +13,8 @@
         .gb_deploy_table td a { cursor: pointer; }
         .gb_deploy_table tr:hover { background-color: #E1F4FF; }
         .gb_deploy_table ol { padding: 0px; }
+        .gb_deploy_table .upload_input { opacity: 0; }
+        .gb_deploy_table .upload_label { cursor: pointer; }
     </style>
 
     <a id="download_link" href="" style="display:none;"></a>
@@ -29,7 +31,11 @@
 
             <apex:repeat value="{!SettingsList}" var="s">
             <tr>
-                <td><a href="" onclick="injectContent(this, '{!s.Id}', 'Setting', '{!s.Name}.json')">{!s.Name}</a></td>
+                <td>
+                    <a href="" onclick="injectContent(this, '{!s.Id}', 'Setting', '{!s.Name}.json')">{!s.Name}</a>
+                    <label class="upload_label" for="input_{!s.Id}">#</label>
+                    <input class="upload_input" id="input_{!s.Id}" type="file" data-sfid="{!s.Id}" onChange="onFileSelectChanged(this)"/>
+                </td>
                 <td>{!s.Rec.LastModifiedBy.Name}</td>
                 <td class="date">{!s.LastModifiedDate}</td>
                 <td>
@@ -131,6 +137,59 @@
                     callback(res);
                 }
             );
+        }
+
+
+        // ---- UPLOAD ----
+
+        function arrayBufferToString(arrBuff) {
+            let text = '',
+                bytes = new Uint8Array(arrBuff);
+            for (let ii = 0; ii < bytes.byteLength; ii++) {
+                text += String.fromCharCode(bytes[ii]);
+            }
+            return text;
+        }
+
+        function readFile(file, callback) {
+            let fileReader = new FileReader();
+            fileReader.onload = (onLoadRes) => {
+                if (onLoadRes.target.readyState == FileReader.DONE) {
+                    callback({ content : arrayBufferToString(onLoadRes.target.result) });
+                }
+            }
+            fileReader.onprogress = (e) => {}
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        function onFileSelectChanged(sender) {
+            let sfid = sender.getAttribute('data-sfid');
+            
+            if (sender.files.length > 0) {
+                readFile(sender.files[0], res => {
+                    let json = JSON.parse(res.content);
+                    json.adminFieldProperties = JSON.stringify(json.adminFieldProperties, null, 0).replace(/\"/g,"\"");
+                    json.charts = JSON.stringify(json.charts, null, 0).replace(/\"/g,"\"");
+                    json.colorCoding = JSON.stringify(json.colorCoding, null, 0).replace(/\"/g,"\"");
+                    json.crudSettings = JSON.stringify(json.crudSettings, null, 0).replace(/\"/g,"\"");
+                    json.fieldProperties = JSON.stringify(json.fieldProperties, null, 0).replace(/\"/g,"\"");
+                    json.relationships = JSON.stringify(json.relationships, null, 0).replace(/\"/g,"\"");
+
+                    //console.log('content:', json);
+                    let content = window.btoa(JSON.stringify(json, null, 0));
+                    //console.log('content:', content);
+                    //console.log('sfid:', sfid);
+                    
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.GB_Deploy.updateSetting}',
+                        sfid,
+                        content, 
+                        (res, evt) => {
+                            console.log(res, evt);
+                        }
+                    );
+                });
+            }
         }
     </script>
 </apex:page>
