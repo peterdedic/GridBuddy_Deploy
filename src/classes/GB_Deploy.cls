@@ -26,12 +26,8 @@ global without sharing class GB_Deploy {
         }
     }
 
-    private static void cacheMeta() {
-        MetaMap = new Map<String, Meta>();
-
-        List<Meta> MetaList = new List<Meta>();
-
-        for (GBLite__GB_Global_Meta__c gbm : [
+    private static List<GBLite__GB_Global_Meta__c> getMeta() {
+        return [
             SELECT Id,
                 GBLite__Type__c, 
                 GBLite__Grid_Name__c,
@@ -43,7 +39,13 @@ global without sharing class GB_Deploy {
             FROM    GBLite__GB_Global_Meta__c 
             WHERE   GBLite__Type__c in ('Action', 'Custom Code - CSS', 'Custom Code - JavaScript')
             ORDER BY GBLite__Object_API_Name__c
-        ]) {
+        ];
+    }
+
+    private static void cacheMeta() {
+        MetaMap = new Map<String, Meta>();
+
+        for (GBLite__GB_Global_Meta__c gbm : GB_Deploy.getMeta()) {
             Meta m = null;
             if (gbm.GBLite__Type__c == 'Action') {
                m = new MetaAction(gbm);
@@ -56,6 +58,25 @@ global without sharing class GB_Deploy {
             //}
             if (m != null)
                 MetaMap.put(m.Id, m);
+        }
+    }
+
+    private static void cacheMetaByName() {
+        MetaMap = new Map<String, Meta>();
+
+        for (GBLite__GB_Global_Meta__c gbm : GB_Deploy.getMeta()) {
+            Meta m = null;
+            if (gbm.GBLite__Type__c == 'Action') {
+               m = new MetaAction(gbm);
+            }
+            if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
+               m = new MetaCSS(gbm);
+            }
+            if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
+               m = new MetaJS(gbm);
+            }
+            if (m != null)
+                MetaMap.put(m.Name, m);
         }
     }
 
@@ -77,8 +98,6 @@ global without sharing class GB_Deploy {
     private static String generateMetaExternalId(List<Meta> metas) {
         if (metas == null || metas.size() == 0) return '';
 
-        //System.debug('=+=metas:'+metas);
-        //System.debug('=+=metas size:'+metas.size());
         String res = '';
         for (Meta m : metas) {
             if (m != null)
@@ -90,30 +109,56 @@ global without sharing class GB_Deploy {
             return res;
     }
 
+    private static String generateMetaName(List<Meta> metas) {
+        if (metas == null || metas.size() == 0) return '';
+
+        String res = '';
+        for (Meta m : metas) {
+            if (m != null)
+                res += ',' + m.Id;
+        }
+        if (res.length() > 0)
+            return res.substring(1);
+        else
+            return res;
+    }
+
     private static String base64Encode(String txt) {
         return EncodingUtil.base64Encode(Blob.valueOf(txt == null ? '' : txt));
     }
     
-    //@RemoteAction global static String updateSetting(String Id, String base64Def) {
+    @RemoteAction global static String updateSetting(String Id, String base64Def) {
         
-    //    GBLite__GridBuddySettings__c setting = [SELECT Id, GBLite__Definition__c FROM GBLite__GridBuddySettings__c WHERE Id = :Id];
+        GBLite__GridBuddySettings__c setting = [SELECT Id, GBLite__Definition__c FROM GBLite__GridBuddySettings__c WHERE Id = :Id];
 
-    //    if (setting != null) {
-    //        String result = 'success';
-    //        try {
-    //            setting.GBLite__Definition__c = EncodingUtil.base64Decode(base64Def).tostring();
-    //            update setting;
-    //        } catch (Exception e) {
-    //            result = 'error:' + e;
-    //        }
-    //        return result;
-    //    } else {
-    //        return 'failed';
-    //    }
+        if (setting != null) {
+            GB_Deploy.cacheMetaByName();
+            String jsonString = EncodingUtil.base64Decode(base64Def).tostring();
+            GB_Settings_JSON def = (GB_Settings_JSON)JSON.deserialize(jsonString, GB_Settings_JSON.class);
 
-    //    //String str = '---->' + Id + ': ' + base64Def;
-    //    //return 'success: ' + str;
-    //}
+            List<Meta> Actions = GB_Deploy.getMetaContent(def.actions);
+            List<Meta> CustomCSS = GB_Deploy.getMetaContent(def.customCSSIds);
+            List<Meta> CustomJS = GB_Deploy.getMetaContent(def.customJSIds);
+
+            def.actions = GB_Deploy.generateMetaName(Actions);
+            def.customCSSIds = GB_Deploy.generateMetaName(CustomCSS);
+            def.customJSIds = GB_Deploy.generateMetaName(CustomJS);
+
+            setting.GBLite__Definition__c = JSON.serialize(def);
+            String result = 'success';
+            try {
+                update setting;
+            } catch (Exception e) {
+                result = 'error:' + e;
+            }
+            return result;
+        } else {
+            return 'failed';
+        }
+
+        //String str = '---->' + Id + ': ' + base64Def;
+        //return 'success: ' + str;
+    }
 
     @RemoteAction global static String getBase64ContentByIdAndType(String recId, String recType) {
 
@@ -126,7 +171,7 @@ global without sharing class GB_Deploy {
 
         if (recType == 'Meta') {
             String result = [SELECT GBLite__Picklist_Meta__c FROM GBLite__GB_Global_Meta__c WHERE Id = :recId].GBLite__Picklist_Meta__c;
-            return GB_Deploy.base64Encode(result);
+            return GB_Deploy.base64Encode(JSON.serializePretty(result));
         }
 
         return '';
