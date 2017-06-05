@@ -21,6 +21,21 @@
 				runAllTests="true"/>
 	</target>
 
+	<target name="deployToPROD">
+		<input message="username:" addproperty="usr"/>
+		<input message="password:" addproperty="pwd"/>
+		<input message="checkOnly:" addproperty="chck"/>
+		<sf:deploy 
+				username="${usr}" 
+				password="${pwd}" 
+				serverurl="${sf.serverUrl}" 
+				deployRoot="/src"
+				ignoreWarnings="true"
+				checkOnly="${chck}"
+				maxPoll="100"
+				runAllTests="true"/>
+	</target>
+
 	<target name="test">
 		<input message="username:" addproperty="usr"/>
 		<input message="password:" addproperty="pwd"/>

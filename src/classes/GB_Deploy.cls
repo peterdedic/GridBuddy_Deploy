@@ -171,8 +171,8 @@ global without sharing class GB_Deploy {
 
         if (recType == 'Meta') {
             String result = [SELECT GBLite__Picklist_Meta__c FROM GBLite__GB_Global_Meta__c WHERE Id = :recId].GBLite__Picklist_Meta__c;
-            Object json = JSON.deserializeUntyped(result);
-            return GB_Deploy.base64Encode(JSON.serializePretty(json));
+            Object jsonObj = JSON.deserializeUntyped(result);
+            return GB_Deploy.base64Encode(JSON.serializePretty(jsonObj));
         }
 
         return '';
