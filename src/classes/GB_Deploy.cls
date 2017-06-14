@@ -42,6 +42,22 @@ global without sharing class GB_Deploy {
         ];
     }
 
+    private static List<GBLite__GridBuddySettings__c> getSettings() {
+        return [
+            SELECT Id,
+                GBLite__Definition__c,
+                GBLite__Custom_CSS_File__c,
+                GBLite__Grid_Name__c,
+                GBLite__Custom_JS_File__c,
+                GBLite__Default_Definition__c,
+                LastModifiedDate,
+                LastModifiedBy.Name
+            FROM    GBLite__GridBuddySettings__c
+            WHERE   GBLite__Default_Definition__c = true
+            ORDER BY GBLite__Grid_Name__c
+        ];
+    }
+
     private static void cacheMeta() {
         MetaMap = new Map<String, Meta>();
 
@@ -126,6 +142,21 @@ global without sharing class GB_Deploy {
     private static String base64Encode(String txt) {
         return EncodingUtil.base64Encode(Blob.valueOf(txt == null ? '' : txt));
     }
+
+    //public String extractAllSettings() {
+    //    GB_Deploy.cacheMeta();
+
+    //    SettingsList = new List<Setting>();
+    //    for (GBLite__GridBuddySettings__c s : GB_Deploy.getSettings()) {
+    //        Setting locSet = new Setting(s);
+    //        SettingsList.add(locSet);
+    //        MetaMap.put(locSet.Id, locSet);
+    //    }
+    //}
+
+    //public String extractAllMeta() {
+        
+    //}
     
     @RemoteAction global static String updateSetting(String Id, String base64Def) {
         
@@ -134,15 +165,15 @@ global without sharing class GB_Deploy {
         if (setting != null) {
             GB_Deploy.cacheMetaByName();
             String jsonString = EncodingUtil.base64Decode(base64Def).tostring();
-            GB_Settings_JSON def = (GB_Settings_JSON)JSON.deserialize(jsonString, GB_Settings_JSON.class);
+            Map<String, Object> def = (Map<String, Object>)JSON.deserializeUntyped(jsonString);
 
-            List<Meta> Actions = GB_Deploy.getMetaContent(def.actions);
-            List<Meta> CustomCSS = GB_Deploy.getMetaContent(def.customCSSIds);
-            List<Meta> CustomJS = GB_Deploy.getMetaContent(def.customJSIds);
+            List<Meta> Actions = GB_Deploy.getMetaContent((String)def.get('actions'));
+            //List<Meta> CustomCSS = GB_Deploy.getMetaContent((String)def.get('customCSSIds'));
+            //List<Meta> CustomJS = GB_Deploy.getMetaContent((String)def.get('customJSIds'));
 
-            def.actions = GB_Deploy.generateMetaName(Actions);
-            def.customCSSIds = GB_Deploy.generateMetaName(CustomCSS);
-            def.customJSIds = GB_Deploy.generateMetaName(CustomJS);
+            def.put('actions', GB_Deploy.generateMetaName(Actions));
+            //def.put('customCSSIds', GB_Deploy.generateMetaName(CustomCSS));
+            //def.put('customJSIds', GB_Deploy.generateMetaName(CustomJS));
 
             setting.GBLite__Definition__c = JSON.serialize(def);
             String result = 'success';
@@ -160,6 +191,33 @@ global without sharing class GB_Deploy {
         //return 'success: ' + str;
     }
 
+    @RemoteAction global static String updateMeta(String sfId, String gbType, String base64Def) { 
+        GBLite__GB_Global_Meta__c meta = [SELECT Id, GBLite__Picklist_Meta__c FROM GBLite__GB_Global_Meta__c WHERE Id = :sfId];
+
+        try {
+            if (meta != null) {
+                String content = EncodingUtil.base64Decode(base64Def).tostring();
+                if (gbType == 'action') {
+                    Map<String, Object> def = (Map<String, Object>)JSON.deserializeUntyped(content);
+                    content = JSON.serialize(def);
+                }
+                meta.GBLite__Picklist_Meta__c = content;
+
+                String result = 'success';
+                try {
+                    update meta;
+                } catch (Exception e) {
+                    result = 'error:' + e;
+                }
+                return result;
+            } else {
+                return 'failed';
+            }
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
     @RemoteAction global static String getBase64ContentByIdAndType(String recId, String recType) {
 
         if (recType == 'Setting') {
@@ -169,10 +227,15 @@ global without sharing class GB_Deploy {
             return m.ContentBase64;
         }
 
-        if (recType == 'Meta') {
+        if (recType == 'Action' /*|| recType == 'JS' || recType == 'CSS'*/) {
             String result = [SELECT GBLite__Picklist_Meta__c FROM GBLite__GB_Global_Meta__c WHERE Id = :recId].GBLite__Picklist_Meta__c;
-            Object jsonObj = JSON.deserializeUntyped(result);
-            return GB_Deploy.base64Encode(JSON.serializePretty(jsonObj));
+
+            if (recType == 'Action') {
+                Object jsonObj = JSON.deserializeUntyped(result);
+                return GB_Deploy.base64Encode(JSON.serializePretty(jsonObj));
+            } else {
+                return GB_Deploy.base64Encode(result);
+            }
         }
 
         return '';
@@ -190,7 +253,7 @@ global without sharing class GB_Deploy {
         public String ContentBase64 {get; private set;}
         public String LastModifiedDate {get; private set;}
 
-        public GB_Settings_JSON Definition {get; private set;}
+        //public GB_Settings_JSON Definition {get; private set;}
 
         public Setting(GBLite__GridBuddySettings__c record) {
             Id = record.Id;
@@ -198,22 +261,22 @@ global without sharing class GB_Deploy {
             Rec = record;
             LastModifiedDate = Rec.LastModifiedDate.formatGMT('YYYY-MM-dd HH:mm:ss');
 
-            Definition = (GB_Settings_JSON)JSON.deserialize(Rec.GBLite__Definition__c, GB_Settings_JSON.class);
+            Map<String, Object> def = (Map<String, Object>)JSON.deserializeUntyped(record.GBLite__Definition__c);
 
-            Actions = GB_Deploy.getMetaContent(Definition.actions);
-            //CustomCSS = GB_Deploy.getMetaContent(Definition.customCSSIds);
-            //CustomJS = GB_Deploy.getMetaContent(Definition.customJSIds);
+            Actions = GB_Deploy.getMetaContent((String)def.get('actions'));
+            //CustomCSS = GB_Deploy.getMetaContent((String)def.get('customCSSIds'));
+            //CustomJS = GB_Deploy.getMetaContent((String)def.get('customJSIds'));
 
 
-            Definition.actions = GB_Deploy.generateMetaExternalId(Actions);
-            //Definition.customCSSIds = GB_Deploy.generateMetaExternalId(CustomCSS);
-            //Definition.customJSIds = GB_Deploy.generateMetaExternalId(CustomJS);
+            def.put('actions', GB_Deploy.generateMetaExternalId(Actions));
+            //def.put('customCSSIds', GB_Deploy.generateMetaExternalId(CustomCSS));
+            //def.put('customJSIds', GB_Deploy.generateMetaExternalId(CustomJS));
 
             //System.debug('===' + this);
             //System.debug('===' + this.Definition);
             //System.debug('=+=' + JSON.serializePretty(Definition));
 
-            ContentBase64 = GB_Deploy.base64Encode(JSON.serializePretty(Definition));
+            ContentBase64 = GB_Deploy.base64Encode(JSON.serializePretty(def));
             //System.debug('=+=' + ContentBase64);
         }
     }

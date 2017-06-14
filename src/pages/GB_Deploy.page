@@ -18,7 +18,7 @@
     </style>
 
     <a id="download_link" href="" style="display:none;"></a>
-    <apex:form>
+    <apex:form >
         <table class="gb_deploy_table">
             <tr>
                 <th>Name</th>
@@ -32,14 +32,18 @@
                 <td>
                     <a href="" onclick="injectContent(this, '{!s.Id}', 'Setting', '{!s.Name}.json')">{!s.Name}</a>
                     <label class="upload_label" for="input_{!s.Id}">#</label>
-                    <input class="upload_input" id="input_{!s.Id}" type="file" data-sfid="{!s.Id}" onChange="onFileSelectChanged(this)"/>
+                    <input class="upload_input" id="input_{!s.Id}" type="file" data-sfid="{!s.Id}" data-gbType="setting" onChange="onFileSelectChanged(this)"/>
                 </td>
                 <td>{!s.Rec.LastModifiedBy.Name}</td>
                 <td class="date">{!s.LastModifiedDate}</td>
                 <td>
                     <ol>
                     <apex:repeat value="{!s.Actions}" var="mc">
-                    <li><a href="" onclick="injectContent(this, '{!mc.Id}', 'Meta', '{!mc.Name}.json')">{!mc.Name}</a></li>
+                    <li>
+                        <a href="" onclick="injectContent(this, '{!mc.Id}', 'Action', '{!mc.Name}.json')">{!mc.Name}</a>
+                        <label class="upload_label" for="input_{!mc.Id}">#</label>
+                        <input class="upload_input" id="input_{!mc.Id}" type="file" data-sfid="{!mc.Id}" data-gbType="action" onChange="onFileSelectChanged(this)"/>
+                    </li>
                     </apex:repeat>
                     </ol>
                 </td>
@@ -96,6 +100,10 @@
                 if (sfType === 'Setting') {
                     content = prettifyBase64EncodedJSON(content);
                 }
+                if (sfType === 'Action') {
+                    let json = JSON.parse(window.atob(content));
+                    content = window.btoa(JSON.stringify(json, null, 2));
+                }
                 
                 link.href = `data:text/plain;base64,${content}`;
                 link.download = name;
@@ -148,31 +156,65 @@
 
         function onFileSelectChanged(sender) {
             let sfid = sender.getAttribute('data-sfid');
+            let gbType = sender.getAttribute('data-gbType');
+            console.log('file upload:', sfid, gbType);
+            //console.log('files:', sender.files);
             
             if (sender.files.length > 0) {
                 readFile(sender.files[0], res => {
-                    let json = JSON.parse(res.content);
-                    json.adminFieldProperties = JSON.stringify(json.adminFieldProperties, null, 0).replace(/\"/g,"\"");
-                    json.charts = JSON.stringify(json.charts, null, 0).replace(/\"/g,"\"");
-                    json.colorCoding = JSON.stringify(json.colorCoding, null, 0).replace(/\"/g,"\"");
-                    json.crudSettings = JSON.stringify(json.crudSettings, null, 0).replace(/\"/g,"\"");
-                    json.fieldProperties = JSON.stringify(json.fieldProperties, null, 0).replace(/\"/g,"\"");
-                    json.relationships = JSON.stringify(json.relationships, null, 0).replace(/\"/g,"\"");
-
+                    let content = res.content;
+                    //console.log('gbType', gbType);
+                    //console.log('sfid ', sfid );
+                    //console.log(content);
+                    if (gbType === 'setting' || gbType === 'action') {
+                        let json = JSON.parse(content);
+                        if (gbType === 'setting') {
+                            json.adminFieldProperties = JSON.stringify(json.adminFieldProperties, null, 0).replace(/\"/g,"\"");
+                            json.charts = JSON.stringify(json.charts, null, 0).replace(/\"/g,"\"");
+                            json.colorCoding = JSON.stringify(json.colorCoding, null, 0).replace(/\"/g,"\"");
+                            json.crudSettings = JSON.stringify(json.crudSettings, null, 0).replace(/\"/g,"\"");
+                            json.fieldProperties = JSON.stringify(json.fieldProperties, null, 0).replace(/\"/g,"\"");
+                            json.relationships = JSON.stringify(json.relationships, null, 0).replace(/\"/g,"\"");
+                        }
+                        content = JSON.stringify(json, null, 0);
+                    }
                     //console.log('content:', json);
-                    let content = window.btoa(JSON.stringify(json, null, 0));
                     //console.log('content:', content);
                     //console.log('sfid:', sfid);
                     
-                    Visualforce.remoting.Manager.invokeAction(
-                        '{!$RemoteAction.GB_Deploy.updateSetting}',
-                        sfid,
-                        content, 
-                        (res, evt) => {
-                            console.log(res, evt);
-                        }
-                    );
+                    content = window.btoa(content);
+                    //console.log(content);
+                    if (gbType === 'setting') {
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.GB_Deploy.updateSetting}',
+                            sfid,
+                            content, 
+                            (res, evt) => {
+                                //console.log(res, evt);
+                                if (res === 'success')
+                                    console.log('upload completed');
+                                else
+                                    console.log('upload failed', evt);
+                            }
+                        );
+                    } else {
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.GB_Deploy.updateMeta}',
+                            sfid,
+                            gbType,
+                            content, 
+                            (res, evt) => {
+                                //console.log(res, evt);
+                                if (res === 'success')
+                                    console.log('upload completed');
+                                else
+                                    console.log('upload failed', evt);
+                            }
+                        );
+                    }
                 });
+
+                sender.value = '';
             }
         }
     </script>
