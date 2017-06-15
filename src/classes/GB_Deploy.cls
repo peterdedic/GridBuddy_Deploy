@@ -62,12 +62,12 @@ global without sharing class GB_Deploy {
     public void addMetaAction() {
         addMetaByType('action');
     }
-    public void addMetaCSS() {
-        addMetaByType('css');
-    }
-    public void addMetaJS() {
-        addMetaByType('js');
-    }
+    //public void addMetaCSS() {
+    //    addMetaByType('css');
+    //}
+    //public void addMetaJS() {
+    //    addMetaByType('js');
+    //}
 
     public void addMetaByType(String mtype) {
         midx++;
@@ -78,18 +78,18 @@ global without sharing class GB_Deploy {
                 meta.GBLite__Type__c = 'Action';
                 //meta.GBLite__Object_API_Name__c = 'Object';
                 meta.GBLite__Picklist_Meta__c = '{}';
-                meta.GBLite__Summary__c = '';
+                //meta.GBLite__Summary__c = '';
             }
-            if (mtype == 'css') {
-                meta.GBLite__Type__c = 'Custom Code - CSS';
-                meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_css';
-                meta.GBLite__Picklist_Meta__c = '//empty';
-            }
-            if (mtype == 'js') {
-                meta.GBLite__Type__c = 'Custom Code - JavaScript';
-                meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_js';
-                meta.GBLite__Picklist_Meta__c = '//empty';
-            }
+            //if (mtype == 'css') {
+            //    meta.GBLite__Type__c = 'Custom Code - CSS';
+            //    meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_css';
+            //    meta.GBLite__Picklist_Meta__c = '//empty';
+            //}
+            //if (mtype == 'js') {
+            //    meta.GBLite__Type__c = 'Custom Code - JavaScript';
+            //    meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_js';
+            //    meta.GBLite__Picklist_Meta__c = '//empty';
+            //}
 
             NewMetasList.add(meta);
         } else {

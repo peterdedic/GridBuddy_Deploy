@@ -77,8 +77,8 @@
                 </apex:repeat>
                 </table>
                 <apex:commandButton value="Add Action" action="{!addMetaAction}" reRender="newMeta"/>
-                <apex:commandButton value="Add CSS" action="{!addMetaCSS}" reRender="newMeta"/>
-                <apex:commandButton value="Add JS" action="{!addMetaJS}" reRender="newMeta"/>
+                <!-- <apex:commandButton value="Add CSS" action="{!addMetaCSS}" reRender="newMeta"/> -->
+                <!-- <apex:commandButton value="Add JS" action="{!addMetaJS}" reRender="newMeta"/> -->
                 <div>Result: {!ErrMsg}</div>
             </apex:outputPanel>
         </div>
