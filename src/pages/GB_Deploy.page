@@ -71,7 +71,7 @@
                     <tr><th>name</th><th>type</th></tr>
                 <apex:repeat value="{!NewMetasList}" var="m">
                     <tr>
-                        <td><apex:inputField value="{!m.GBLite__Summary__c}" /></td>
+                        <td><apex:inputField value="{!m.GBLite__Object_API_Name__c}" /></td>
                         <td>{!m.GBLite__Type__c}</td>
                     </tr>
                 </apex:repeat>

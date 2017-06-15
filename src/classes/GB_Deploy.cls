@@ -101,8 +101,8 @@ global without sharing class GB_Deploy {
         try {
             for (GBLite__GB_Global_Meta__c meta : NewMetasList) {
                 if (meta.GBLite__Type__c == 'Action') {
-                    String sObj = meta.GBLite__Summary__c.split('.')[0];
-                    String label = meta.GBLite__Summary__c.split('.')[1];
+                    String sObj = meta.GBLite__Object_API_Name__c.split('.')[0];
+                    String label = meta.GBLite__Object_API_Name__c.split('.')[1];
                     meta.GBLite__Object_API_Name__c = sObj;
                     meta.GBLite__Picklist_Meta__c = '{"actionLabel":"' + label + '"}';
                 }
