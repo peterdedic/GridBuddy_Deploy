@@ -201,12 +201,18 @@
                     if (gbType === 'setting' || gbType === 'action') {
                         let json = JSON.parse(content);
                         if (gbType === 'setting') {
-                            json.adminFieldProperties = JSON.stringify(json.adminFieldProperties, null, 0).replace(/\"/g,"\"");
-                            json.charts = JSON.stringify(json.charts, null, 0).replace(/\"/g,"\"");
-                            json.colorCoding = JSON.stringify(json.colorCoding, null, 0).replace(/\"/g,"\"");
-                            json.crudSettings = JSON.stringify(json.crudSettings, null, 0).replace(/\"/g,"\"");
-                            json.fieldProperties = JSON.stringify(json.fieldProperties, null, 0).replace(/\"/g,"\"");
-                            json.relationships = JSON.stringify(json.relationships, null, 0).replace(/\"/g,"\"");
+                            if (json.adminFieldProperties && json.adminFieldProperties !== '')
+                                json.adminFieldProperties = JSON.stringify(json.adminFieldProperties, null, 0).replace(/\"/g,"\"");
+                            if (json.charts && json.charts !== '')
+                                json.charts = JSON.stringify(json.charts, null, 0).replace(/\"/g,"\"");
+                            if (json.colorCoding && json.colorCoding !== '')
+                                json.colorCoding = JSON.stringify(json.colorCoding, null, 0).replace(/\"/g,"\"");
+                            if (json.crudSettings && json.crudSettings !== '')
+                                json.crudSettings = JSON.stringify(json.crudSettings, null, 0).replace(/\"/g,"\"");
+                            if (json.fieldProperties && json.fieldProperties !== '')
+                                json.fieldProperties = JSON.stringify(json.fieldProperties, null, 0).replace(/\"/g,"\"");
+                            if (json.relationships && json.relationships !== '')
+                                json.relationships = JSON.stringify(json.relationships, null, 0).replace(/\"/g,"\"");
                         }
                         content = JSON.stringify(json, null, 0);
                     }
