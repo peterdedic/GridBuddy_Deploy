@@ -74,6 +74,38 @@
             </tr>
             </apex:repeat>
         </table>
+        
+        <div style="background-color: #EEFFEE; margin: 15px;">
+            <h3>Grids:</h3>
+            <apex:outputPanel id="newSettings">
+                <!-- <div>: {!NewSettingsList}</div> -->
+                <apex:commandButton value="Save" action="{!saveSettings}" reRender="newSettings" rendered="{!NewSettingsList.size > 0}"/>
+                <apex:repeat value="{!NewSettingsList}" var="sett">
+                    <apex:inputField value="{!sett.GBLite__Grid_Name__c}" />
+                </apex:repeat>
+                <apex:commandButton value="Add" action="{!addSetting}" reRender="newSettings"/>
+                <div>Result: {!ErrMsg}</div>
+            </apex:outputPanel>
+        </div>
+        <div style="background-color: #FFEEEE; margin: 15px;">
+            <h3>Meta:</h3>
+            <apex:outputPanel id="newMeta">
+                <apex:commandButton value="Save" action="{!saveMetas}" reRender="newMeta" rendered="{!NewMetasList.size > 0}"/>
+                <table>
+                    <tr><th>name</th><th>type</th></tr>
+                <apex:repeat value="{!NewMetasList}" var="m">
+                    <tr>
+                        <td><apex:inputField value="{!m.GBLite__Summary__c}" /></td>
+                        <td>{!m.GBLite__Type__c}</td>
+                    </tr>
+                </apex:repeat>
+                </table>
+                <apex:commandButton value="Add Action" action="{!addMetaAction}" reRender="newMeta"/>
+                <apex:commandButton value="Add CSS" action="{!addMetaCSS}" reRender="newMeta"/>
+                <apex:commandButton value="Add JS" action="{!addMetaJS}" reRender="newMeta"/>
+                <div>Result: {!ErrMsg}</div>
+            </apex:outputPanel>
+        </div>
     </apex:form>
 
     <script>

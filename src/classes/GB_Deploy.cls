@@ -3,7 +3,16 @@ global without sharing class GB_Deploy {
 
     static public transient Map<String, Meta> MetaMap {get;set;}
 
+    public List<GBLite__GridBuddySettings__c> NewSettingsList {get;set;}
+    public List<GBLite__GB_Global_Meta__c> NewMetasList {get;set;}
+    public Integer idx = 0;
+    public Integer midx = 0;
+    public String ErrMsg {get;set;}
+
     public GB_Deploy() {
+        NewSettingsList = new List<GBLite__GridBuddySettings__c>();
+        NewMetasList = new List<GBLite__GB_Global_Meta__c>();
+        ErrMsg = '';
         GB_Deploy.cacheMeta();
 
         SettingsList = new List<Setting>();
@@ -23,6 +32,85 @@ global without sharing class GB_Deploy {
             Setting locSet = new Setting(s);
             SettingsList.add(locSet);
             MetaMap.put(locSet.Id, locSet);
+        }
+
+        
+    }
+
+    public void addSetting() {
+        idx++;
+        if (NewSettingsList != null) {
+            NewSettingsList.add(new GBLite__GridBuddySettings__c(
+                GBLite__Grid_Name__c = 'grid ' + idx,
+                GBLite__Default_Definition__c = true,
+                GBLite__Definition__c = '{}'
+            ));
+        } else {
+            ErrMsg = 'error';
+        }
+    }
+
+    public void saveSettings() {
+        try {
+            insert NewSettingsList;
+            ErrMsg = 'done.';
+        } catch (Exception e) {
+            ErrMsg = e.getMessage();
+        }
+    }
+
+    public void addMetaAction() {
+        addMetaByType('action');
+    }
+    public void addMetaCSS() {
+        addMetaByType('css');
+    }
+    public void addMetaJS() {
+        addMetaByType('js');
+    }
+
+    public void addMetaByType(String mtype) {
+        midx++;
+        if (NewMetasList != null) {
+            GBLite__GB_Global_Meta__c meta = new GBLite__GB_Global_Meta__c();
+
+            if (mtype == 'action') {
+                meta.GBLite__Type__c = 'Action';
+                //meta.GBLite__Object_API_Name__c = 'Object';
+                meta.GBLite__Picklist_Meta__c = '{}';
+                meta.GBLite__Summary__c = '';
+            }
+            if (mtype == 'css') {
+                meta.GBLite__Type__c = 'Custom Code - CSS';
+                meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_css';
+                meta.GBLite__Picklist_Meta__c = '//empty';
+            }
+            if (mtype == 'js') {
+                meta.GBLite__Type__c = 'Custom Code - JavaScript';
+                meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_js';
+                meta.GBLite__Picklist_Meta__c = '//empty';
+            }
+
+            NewMetasList.add(meta);
+        } else {
+            ErrMsg = 'error';
+        }
+    }
+
+    public void saveMetas() {
+        try {
+            for (GBLite__GB_Global_Meta__c meta : NewMetasList) {
+                if (meta.GBLite__Type__c == 'Action') {
+                    String sObj = meta.GBLite__Summary__c.split('.')[0];
+                    String label = meta.GBLite__Summary__c.split('.')[1];
+                    meta.GBLite__Object_API_Name__c = sObj;
+                    meta.GBLite__Picklist_Meta__c = '{"actionLabel":"' + label + '"}';
+                }
+            }
+            insert NewMetasList;
+            ErrMsg = 'done.';
+        } catch (Exception e) {
+            ErrMsg = e.getMessage();
         }
     }
 
