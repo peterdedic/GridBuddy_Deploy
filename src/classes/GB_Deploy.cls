@@ -114,6 +114,7 @@ global without sharing class GB_Deploy {
         }
     }
 
+    @TestVisible
     private static List<GBLite__GB_Global_Meta__c> getMeta() {
         return [
             SELECT Id,
@@ -130,6 +131,7 @@ global without sharing class GB_Deploy {
         ];
     }
 
+    @TestVisible
     private static List<GBLite__GridBuddySettings__c> getSettings() {
         return [
             SELECT Id,
@@ -146,6 +148,7 @@ global without sharing class GB_Deploy {
         ];
     }
 
+    @TestVisible
     private static void cacheMeta() {
         MetaMap = new Map<String, Meta>();
 
@@ -165,6 +168,7 @@ global without sharing class GB_Deploy {
         }
     }
 
+    @TestVisible
     private static void cacheMetaByName() {
         MetaMap = new Map<String, Meta>();
 
@@ -184,6 +188,7 @@ global without sharing class GB_Deploy {
         }
     }
 
+    @TestVisible
     private static List<Meta> getMetaContent(String strIds) {
         List<Meta> contentList = new List<Meta>();
         
@@ -199,6 +204,7 @@ global without sharing class GB_Deploy {
         return contentList;
     }
 
+    @TestVisible
     private static String generateMetaExternalId(List<Meta> metas) {
         if (metas == null || metas.size() == 0) return '';
 
@@ -213,6 +219,7 @@ global without sharing class GB_Deploy {
             return res;
     }
 
+    @TestVisible
     private static String generateMetaName(List<Meta> metas) {
         if (metas == null || metas.size() == 0) return '';
 
@@ -227,6 +234,7 @@ global without sharing class GB_Deploy {
             return res;
     }
 
+    @TestVisible
     private static String base64Encode(String txt) {
         return EncodingUtil.base64Encode(Blob.valueOf(txt == null ? '' : txt));
     }

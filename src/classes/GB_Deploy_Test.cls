@@ -63,6 +63,18 @@ global class GB_Deploy_Test {
 
         Test.startTest();
         GB_Deploy gbDeploy = new GB_Deploy();
+        gbDeploy.addSetting();
+        gbDeploy.saveSettings();
+        gbDeploy.addMetaAction();
+        gbDeploy.saveMetas();
+
+        GB_Deploy.getMeta();
+        GB_Deploy.getSettings();
+        GB_Deploy.updateSetting(String.valueOf(test_setting.Id), 'eyJhY3Rpb25MYWJlbCI6ICJsYWJlbDEifQ==');
+        GB_Deploy.updateMeta(String.valueOf(test_meta_action.Id), 'action', 'eyJhY3Rpb25MYWJlbCI6ICJsYWJlbDEifQ==');
+        GB_Deploy.getBase64ContentByIdAndType(test_setting.Id, 'Setting');
+        GB_Deploy.getBase64ContentByIdAndType(test_meta_action.Id, 'Action');
+        GB_Deploy.base64Encode('Action');
         Test.stopTest();
     }
 }
