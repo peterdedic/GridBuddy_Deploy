@@ -62,12 +62,12 @@ global without sharing class GB_Deploy {
     public void addMetaAction() {
         addMetaByType('action');
     }
-    //public void addMetaCSS() {
-    //    addMetaByType('css');
-    //}
-    //public void addMetaJS() {
-    //    addMetaByType('js');
-    //}
+    public void addMetaCSS() {
+        addMetaByType('css');
+    }
+    public void addMetaJS() {
+        addMetaByType('js');
+    }
 
     public void addMetaByType(String mtype) {
         midx++;
@@ -78,18 +78,18 @@ global without sharing class GB_Deploy {
                 meta.GBLite__Type__c = 'Action';
                 //meta.GBLite__Object_API_Name__c = 'Object';
                 meta.GBLite__Picklist_Meta__c = '{}';
-                //meta.GBLite__Summary__c = '';
+                meta.GBLite__Summary__c = '';
             }
-            //if (mtype == 'css') {
-            //    meta.GBLite__Type__c = 'Custom Code - CSS';
-            //    meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_css';
-            //    meta.GBLite__Picklist_Meta__c = '//empty';
-            //}
-            //if (mtype == 'js') {
-            //    meta.GBLite__Type__c = 'Custom Code - JavaScript';
-            //    meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_js';
-            //    meta.GBLite__Picklist_Meta__c = '//empty';
-            //}
+            if (mtype == 'css') {
+                meta.GBLite__Type__c = 'Custom Code - CSS';
+                meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_css';
+                meta.GBLite__Picklist_Meta__c = '//empty';
+            }
+            if (mtype == 'js') {
+                meta.GBLite__Type__c = 'Custom Code - JavaScript';
+                meta.GBLite__Summary__c = 'gbc_meta_' + midx + '_js';
+                meta.GBLite__Picklist_Meta__c = '//empty';
+            }
 
             NewMetasList.add(meta);
         } else {
@@ -101,8 +101,8 @@ global without sharing class GB_Deploy {
         try {
             for (GBLite__GB_Global_Meta__c meta : NewMetasList) {
                 if (meta.GBLite__Type__c == 'Action') {
-                    String sObj = meta.GBLite__Object_API_Name__c.split('.')[0];
-                    String label = meta.GBLite__Object_API_Name__c.split('.')[1];
+                    String sObj = meta.GBLite__Summary__c.split('.')[0];
+                    String label = meta.GBLite__Summary__c.split('.')[1];
                     meta.GBLite__Object_API_Name__c = sObj;
                     meta.GBLite__Picklist_Meta__c = '{"actionLabel":"' + label + '"}';
                 }
@@ -122,7 +122,7 @@ global without sharing class GB_Deploy {
                 GBLite__Grid_Name__c,
                 GBLite__Object_API_Name__c, 
                 GBLite__Picklist_Meta__c,
-                //GBLite__Summary__c,
+                GBLite__Summary__c,
                 LastModifiedDate,
                 LastModifiedBy.Name
             FROM    GBLite__GB_Global_Meta__c 
@@ -157,12 +157,12 @@ global without sharing class GB_Deploy {
             if (gbm.GBLite__Type__c == 'Action') {
                m = new MetaAction(gbm);
             }
-            //if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
-            //   m = new MetaCSS(gbm);
-            //}
-            //if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
-            //   m = new MetaJS(gbm);
-            //}
+            if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
+               m = new MetaCSS(gbm);
+            }
+            if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
+               m = new MetaJS(gbm);
+            }
             if (m != null)
                 MetaMap.put(m.Id, m);
         }
@@ -177,12 +177,12 @@ global without sharing class GB_Deploy {
             if (gbm.GBLite__Type__c == 'Action') {
                m = new MetaAction(gbm);
             }
-            //if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
-            //   m = new MetaCSS(gbm);
-            //}
-            //if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
-            //   m = new MetaJS(gbm);
-            //}
+            if (gbm.GBLite__Type__c == 'Custom Code - CSS') {
+               m = new MetaCSS(gbm);
+            }
+            if (gbm.GBLite__Type__c == 'Custom Code - JavaScript') {
+               m = new MetaJS(gbm);
+            }
             if (m != null)
                 MetaMap.put(m.Name, m);
         }
@@ -264,12 +264,12 @@ global without sharing class GB_Deploy {
             Map<String, Object> def = (Map<String, Object>)JSON.deserializeUntyped(jsonString);
 
             List<Meta> Actions = GB_Deploy.getMetaContent((String)def.get('actions'));
-            //List<Meta> CustomCSS = GB_Deploy.getMetaContent((String)def.get('customCSSIds'));
-            //List<Meta> CustomJS = GB_Deploy.getMetaContent((String)def.get('customJSIds'));
+            List<Meta> CustomCSS = GB_Deploy.getMetaContent((String)def.get('customCSSIds'));
+            List<Meta> CustomJS = GB_Deploy.getMetaContent((String)def.get('customJSIds'));
 
             def.put('actions', GB_Deploy.generateMetaName(Actions));
-            //def.put('customCSSIds', GB_Deploy.generateMetaName(CustomCSS));
-            //def.put('customJSIds', GB_Deploy.generateMetaName(CustomJS));
+            def.put('customCSSIds', GB_Deploy.generateMetaName(CustomCSS));
+            def.put('customJSIds', GB_Deploy.generateMetaName(CustomJS));
 
             setting.GBLite__Definition__c = JSON.serialize(def);
             String result = 'success';
@@ -340,8 +340,8 @@ global without sharing class GB_Deploy {
 
     public class Setting extends Meta {
         public List<Meta> Actions {get; private set;}
-        //public List<Meta> CustomCSS {get; private set;}
-        //public List<Meta> CustomJS {get; private set;}
+        public List<Meta> CustomCSS {get; private set;}
+        public List<Meta> CustomJS {get; private set;}
 
         public GBLite__GridBuddySettings__c Rec {get; private set;}
         public String Id {get; private set;}
@@ -360,13 +360,13 @@ global without sharing class GB_Deploy {
             Map<String, Object> def = (Map<String, Object>)JSON.deserializeUntyped(record.GBLite__Definition__c);
 
             Actions = GB_Deploy.getMetaContent((String)def.get('actions'));
-            //CustomCSS = GB_Deploy.getMetaContent((String)def.get('customCSSIds'));
-            //CustomJS = GB_Deploy.getMetaContent((String)def.get('customJSIds'));
+            CustomCSS = GB_Deploy.getMetaContent((String)def.get('customCSSIds'));
+            CustomJS = GB_Deploy.getMetaContent((String)def.get('customJSIds'));
 
 
             def.put('actions', GB_Deploy.generateMetaExternalId(Actions));
-            //def.put('customCSSIds', GB_Deploy.generateMetaExternalId(CustomCSS));
-            //def.put('customJSIds', GB_Deploy.generateMetaExternalId(CustomJS));
+            def.put('customCSSIds', GB_Deploy.generateMetaExternalId(CustomCSS));
+            def.put('customJSIds', GB_Deploy.generateMetaExternalId(CustomJS));
 
             //System.debug('===' + this);
             //System.debug('===' + this.Definition);
@@ -384,28 +384,28 @@ global without sharing class GB_Deploy {
         public String ContentBase64 {get; private set;}
     }
 
-    //public class MetaCSS extends Meta {
-    //    public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
+    public class MetaCSS extends Meta {
+        public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
 
-    //    public MetaCSS(GBLite__GB_Global_Meta__c rec) {
-    //        GBmeta = rec;
-    //        Id = rec.Id;
-    //        //Type = 'CSS';
-    //        ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
-    //        Name = GBmeta.GBLite__Summary__c;
-    //    }
-    //}
-    //public class MetaJS extends Meta {
-    //    public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
+        public MetaCSS(GBLite__GB_Global_Meta__c rec) {
+            GBmeta = rec;
+            Id = rec.Id;
+            //Type = 'CSS';
+            ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
+            Name = GBmeta.GBLite__Summary__c;
+        }
+    }
+    public class MetaJS extends Meta {
+        public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
 
-    //    public MetaJS(GBLite__GB_Global_Meta__c rec) {
-    //        GBmeta = rec;
-    //        Id = rec.Id;
-    //        //Type = 'JS';
-    //        ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
-    //        Name = GBmeta.GBLite__Summary__c;
-    //    }
-    //}
+        public MetaJS(GBLite__GB_Global_Meta__c rec) {
+            GBmeta = rec;
+            Id = rec.Id;
+            //Type = 'JS';
+            ContentBase64 = GB_Deploy.base64Encode(GBmeta.GBLite__Picklist_Meta__c);
+            Name = GBmeta.GBLite__Summary__c;
+        }
+    }
     public class MetaAction extends Meta {
         public GBLite__GB_Global_Meta__c GBmeta {get; private set;}
         public GB_Action_JSON Definition {get; private set;}
